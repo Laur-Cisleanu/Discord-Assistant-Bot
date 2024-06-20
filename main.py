@@ -1,57 +1,50 @@
 import os
 from typing import Final
 from dotenv import load_dotenv
-from discord import Intents, Client, Message
+import discord
+from discord.ext import commands
 import responses
 
-# step 0
+# step 0 Loading the token
 load_dotenv()
 TOKEN: Final[str] = os.getenv("DISCORD_TOKEN")
 
 # step 1 bot set up
-intents: Intents = Intents.default()
+intents: discord.Intents = discord.Intents.default()
+intents.members = True
 intents.message_content = True
-client: Client = Client(intents=intents)
 
-# step 2 message functionality
-
-async def send_message(message: Message, user_message) -> None:
-    if not user_message:
-        print("Message was empty because intents were not enabled, probably")
-        return
+client = commands.Bot(command_prefix = "#", intents=intents)
     
-    if is_private := user_message[0] == "?":
-        user_message = user_message[1:]
-
-    try:
-        response: str = responses.get_response(user_message)
-        await message.author.send(response) if is_private else await message.channel.send(response)
-    except Exception as e:
-        print(e)
-
-# step 3 start up
+# step 2 commands
 
 @client.event
-async def on_ready() -> None:
-    print(f"{client.user} is running!")
+async def on_ready():
+    print(".........I am online!")
 
 
-# step 4 incoming messages
+@client.command()
+async def hello(ctx):
+    await ctx.send("Hello, i am online")
 
-@client.event
-async def on_message(message: Message) -> None:
-    if message.author == client.user:
-        return
-    
-    username: str = str(message.author)
-    user_message: str = message.content
-    channel: str = str(message.channel)
+@client.command(pass_context = True)
+async def join(ctx):
+    if (ctx.author.voice):
+        channel = ctx.message.author.voice.channel
+        await channel.connect()
+    else:
+        await ctx.send("You are not in a voice channel!")
 
-    print(f'[{channel}] {username}: "{user_message}"')
-    await send_message(message, user_message)
+@client.command(pass_context = True)
+async def leave(ctx):
+    if (ctx.voice_client):
+        await ctx.guild.voice_client.disconnect()
+        await ctx.send("I left the voice channel")
+    else:
+        await ctx.send("I am not currently in a voice channel")
 
 
-# step 5 running the code
+# Last step - Starting the bot up
 def main() -> None:
     client.run(token=TOKEN)
 
