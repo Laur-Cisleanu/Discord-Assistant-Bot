@@ -1,8 +1,9 @@
 import os
 from typing import Final
 from dotenv import load_dotenv
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord import Interaction
+from nextcord.ext import commands
 import responses
 
 # step 0 Loading the token
@@ -10,7 +11,7 @@ load_dotenv()
 TOKEN: Final[str] = os.getenv("DISCORD_TOKEN")
 
 # step 1 bot set up
-intents: discord.Intents = discord.Intents.default()
+intents: nextcord.Intents = nextcord.Intents.default()
 intents.members = True
 intents.message_content = True
 
